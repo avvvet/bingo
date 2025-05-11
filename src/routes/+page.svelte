@@ -2,13 +2,13 @@
 // @ts-nocheck
 
   import { onMount } from 'svelte';
-  import { socketService } from '../store';
+  import { socketService, player } from '../store';
 
   let port = 22201;
   const socketUrl = `ws://localhost:${port}/v1/ws`;
 
   let user = {
-    userId: null,
+    userId: 4000,
     name: "Awet Tsegazeab",
     balance: 1500,
     avatar: "https://via.placeholder.com/40",
@@ -38,6 +38,7 @@
     };
     document.body.appendChild(script);
 
+    player.set(user); 
     initializeSocketService()
   });
 
@@ -49,12 +50,21 @@
   $: if ($socketService) {
     
     $socketService.onopen = async () => {
-      console.log('Connected to signaling server');
+      console.log('Connected to socket server');
+
+      const initPayload = {
+        type: 'init',
+        data: {
+          tg_user_id: JSON.stringify($player.userId)
+        }
+      };
+
+      $socketService.send(JSON.stringify(initPayload));
     };
 
     $socketService.onmessage = (message) => {
       const data = JSON.parse(message.data);
-      handleSignalingData(data);
+      handleSocketgData(data);
     };
 
     $socketService.onerror = (error) => {
@@ -64,6 +74,15 @@
     $socketService.onclose = () => {
       console.log('Disconnected from signaling server');
     };
+  }
+
+  function handleSocketData(data) {
+    if (data.type === 'init_response') {
+      console.log('Player profile loaded:', data);
+      // Save name, balance, etc. to store or local state
+    } else if (data.type === 'error') {
+      console.error('Error from socket service:', data.message);
+    }
   }
 </script>
 
