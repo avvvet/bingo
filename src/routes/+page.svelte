@@ -23,7 +23,7 @@
     });
   </script>
   
-  <div class="min-h-screen bg-gray-100 flex flex-col items-center justify-between p-4">
+  <div class="min-h-screen bg-gradient-to-br from-blue-100 via-white to-gray-100 flex flex-col items-center justify-between p-4">
     <!-- Top Section: User Info -->
     <div class="flex justify-between items-center bg-white p-4 rounded-lg shadow-md w-full max-w-md mt-2">
       <div class="flex items-center space-x-4">
