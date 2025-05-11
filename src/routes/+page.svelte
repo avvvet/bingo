@@ -1,5 +1,11 @@
 <script>
+// @ts-nocheck
+
   import { onMount } from 'svelte';
+  import { socketService } from '../store';
+
+  let port = 22201;
+  const socketUrl = `ws://localhost:${port}/v1/ws`;
 
   let user = {
     userId: null,
@@ -27,11 +33,38 @@
         user.email = tg.initDataUnsafe.user.email || null;
         user.phone = tg.initDataUnsafe.user.phone || null;
       }
-      console.log('Telegram WebApp initialized:', tg);
-      console.log("user data -----", user)
+      //console.log('Telegram WebApp initialized:', tg);
+      //console.log("user data -----", user)
     };
     document.body.appendChild(script);
+
+    initializeSocketService()
   });
+
+  async function initializeSocketService() {
+    const socket = new WebSocket(socketUrl);
+    socketService.set(socket); 
+  }
+
+  $: if ($socketService) {
+    
+    $socketService.onopen = async () => {
+      console.log('Connected to signaling server');
+    };
+
+    $socketService.onmessage = (message) => {
+      const data = JSON.parse(message.data);
+      handleSignalingData(data);
+    };
+
+    $socketService.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    $socketService.onclose = () => {
+      console.log('Disconnected from signaling server');
+    };
+  }
 </script>
 
 <div class="min-h-screen bg-gradient-to-br from-blue-100 via-white to-gray-100 flex flex-col items-center justify-between p-4">
