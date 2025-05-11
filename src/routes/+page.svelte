@@ -1,9 +1,28 @@
-<script>
+
+
+  <script>
+    import { onMount } from 'svelte';
+  
     let user = {
       name: "John Doe",
       balance: 500,
       avatar: "https://via.placeholder.com/40"
     };
+    let tg;
+  
+    onMount(() => {
+      const script = document.createElement('script');
+      script.src = 'https://telegram.org/js/telegram-web-app.js';
+      script.async = true;
+      script.onload = () => {
+        // @ts-ignore
+        tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand(); // Optional: make sure it's full screen
+        console.log('Telegram WebApp initialized:', tg);
+      };
+      document.body.appendChild(script);
+    });
   </script>
   
   <div class="min-h-screen bg-gray-100 flex flex-col items-center justify-between p-4">
