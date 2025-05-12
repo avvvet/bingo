@@ -2,6 +2,7 @@
   // @ts-nocheck
   import { onMount } from 'svelte';
   import { socketService, player } from '../store';
+  import { goto } from '$app/navigation';
   
   let port = 22201;
   const socketUrl = `ws://localhost:${port}/v1/ws`;
@@ -124,26 +125,61 @@
       </div>
     </div>
   
-    <!-- Middle Section: Game Types -->
-    <div class="grid grid-cols-2 gap-4 w-full max-w-md">
-      {#each [
-        { amount: 10, color: 'bg-blue-500 hover:bg-blue-600' },
-        { amount: 20, color: 'bg-red-500 hover:bg-red-600' },
-        { amount: 50, color: 'bg-green-500 hover:bg-green-600' },
-        { amount: 100, color: 'bg-purple-500 hover:bg-purple-600' },
-      ] as game}
-        <button
-          class="{game.color} text-white font-semibold py-4 rounded-lg shadow-md hover:{game.color} transition flex items-center justify-center space-x-2"
-        >
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12zm1-5a1 1 0 11-2 0 1 1 0 012 0z"
-            />
-          </svg>
-          <span>Birr {game.amount} Bingo</span>
-        </button>
-      {/each}
-    </div>
+<!-- Middle Section: Game Types -->
+<div class="grid grid-cols-2 gap-4 w-full max-w-md">
+  <!-- Game 10 (Yellow Theme) -->
+  <button
+    on:click={() => goto("/game10")}
+    class="bg-blue-500 hover:bg-blue-600 text-white font-semibold p-4 rounded-lg shadow-md transition flex items-center justify-center space-x-2 aspect-square border-2 border-blue-800"
+  >
+    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+      <path
+        d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12zm1-5a1 1 0 11-2 0 1 1 0 012 0z"
+      />
+    </svg>
+    <span>Birr 10 Bingo</span>
+  </button>
+
+  <!-- Game 20 (Green Theme) -->
+  <button
+    on:click={() => goto("/game20")}
+    class="bg-green-500 hover:bg-green-600 text-green-800 font-semibold p-4 rounded-lg shadow-md transition flex items-center justify-center space-x-2 aspect-square border-2 border-green-700"
+  >
+    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+      <path
+        d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12zm1-5a1 1 0 11-2 0 1 1 0 012 0z"
+      />
+    </svg>
+    <span>Birr 20 Bingo</span>
+  </button>
+
+  <!-- Game 40 (Orange Theme) -->
+  <button
+    on:click={() => goto("/game40")}
+    class="bg-orange-500 hover:bg-orange-600 text-orange-800 font-semibold p-4 rounded-lg shadow-md transition flex items-center justify-center space-x-2 aspect-square border-2 border-orange-700"
+  >
+    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+      <path
+        d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12zm1-5a1 1 0 11-2 0 1 1 0 012 0z"
+      />
+    </svg>
+    <span>Birr 40 Bingo</span>
+  </button>
+
+  <!-- Game 50 (Purple Theme) -->
+  <button
+    on:click={() => goto("/game50")}
+    class="bg-yellow-100 hover:bg-yellow-200 text-white font-semibold p-4 rounded-lg shadow-md transition flex items-center justify-center space-x-2 aspect-square border-2 border-yellow-800 bg-yellow-500"
+  >
+    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+      <path
+        d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12zm1-5a1 1 0 11-2 0 1 1 0 012 0z"
+      />
+    </svg>
+    <span>Birr 50 Bingo</span>
+  </button>
+</div>
+
   
     <!-- Bottom Section: Continue Button -->
     <button
