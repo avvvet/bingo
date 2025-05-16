@@ -2,6 +2,7 @@
   // @ts-nocheck
   import { onMount } from 'svelte';
   import { socketService, player } from '../store';
+  import { initSocket, socketMessage, socketConnected, gsocket } from '$lib/socket';
   import { goto } from '$app/navigation';
   
   let port = 22201;
@@ -21,7 +22,7 @@
       tg.expand(); // Optional: make sure it's full screen
   
       let user = {
-        user_id: 1234567890000000000,
+        user_id: 1084567890000000000,
         name: 'default-user',
         avatar: 'https://via.placeholder.com/40',
         balance: 0, // Initialize balance to avoid undefined
@@ -42,19 +43,12 @@
   
     document.body.appendChild(script);
   
-    initializeSocketService();
+    initSocket();
   });
   
-  async function initializeSocketService() {
-    const socket = new WebSocket(socketUrl);
-    socketService.set(socket);
-  }
-  
-  $: if ($socketService) {
-    $socketService.onopen = async () => {
-      console.log('Connected to socket server');
-  
-      const initPayload = {
+
+  $: if ($socketConnected) {
+    const initPayload = {
         type: 'init',
         data: {
           user_id: $player.user_id,
@@ -63,23 +57,15 @@
           email: $player.email,
           avatar: $player.avatar,
         },
-      };
-  
-      $socketService.send(JSON.stringify(initPayload));
     };
+    if ($gsocket && $gsocket.readyState === WebSocket.OPEN) {
+      $gsocket.send(JSON.stringify(initPayload));
+    }
+  }
   
-    $socketService.onmessage = (message) => {
-      const data = JSON.parse(message.data);
-      handleSocketData(data);
-    };
-  
-    $socketService.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-  
-    $socketService.onclose = () => {
-      console.log('Disconnected from signaling server');
-    };
+  $: if ($socketMessage) {
+    const data = JSON.parse($socketMessage);
+    handleSocketData(data);
   }
   
   function handleSocketData(msg) {
@@ -94,9 +80,7 @@
         phone: $player.phone,
       };
       player.set(user);
-    } else if (data.type === 'error') {
-      console.error('Error from socket service:', data.message);
-    }
+    } 
   }
   </script>
   
@@ -163,7 +147,7 @@
         d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12zm1-5a1 1 0 11-2 0 1 1 0 012 0z"
       />
     </svg>
-    <span>Birr 40 Bingo</span>
+    <span>Birr 50 Bingo</span>
   </button>
 
   <!-- Game 50 (Purple Theme) -->
@@ -176,7 +160,7 @@
         d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12zm1-5a1 1 0 11-2 0 1 1 0 012 0z"
       />
     </svg>
-    <span>Birr 50 Bingo</span>
+    <span>Birr 100 Bingo</span>
   </button>
 </div>
 
