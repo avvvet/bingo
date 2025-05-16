@@ -39,7 +39,7 @@
       game.set({
         gameId:     d.game.id,
         gameNumber: d.game.game_no,
-        noPlayers:  d.players.length,
+        noPlayers:  getPlayerCount(d.players),
         jackpot:    800
       });
       gamePlayers.set(d.players);
@@ -49,7 +49,10 @@
     }
   }
 
+  const getPlayerCount = (players) => (Array.isArray(players) ? players.length : 0);
+
   function isCardHighlighted(card) {
+    if ($gamePlayers == null) return false;
     return $gamePlayers.some(p => parseInt(p.card_sn) === card);
   }
 
