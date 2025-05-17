@@ -45,7 +45,8 @@
       gamePlayers.set(d.players);
     }
     else if (msg.type === 'player-select-card-response') {
-      playerCard.set(msg.data.data);
+      let d = msg.data;
+      playerCard.set(d);
     }
   }
 
@@ -83,7 +84,7 @@
   const headerColors  = ['bg-red-500','bg-yellow-500','bg-green-500','bg-blue-500','bg-purple-500'];
 
   $: if ($playerCard) {
-    numbers = $playerCard.split(',').map(s => s.trim()).filter(Boolean).map(n => +n);
+    numbers = $playerCard.data.split(',').map(s => s.trim()).filter(Boolean).map(n => +n);
     if (numbers.length === 25) {
       grid = [];
       for (let r = 0; r < 5; r++) {
@@ -95,7 +96,9 @@
   }
 
   // derive a short serial from the first 8 chars of the card data
-  $: serial = $playerCard ? $playerCard.replace(/,/g, '').slice(0, 8).toUpperCase() : '';
+  //$: serial = $playerCard ? $playerCard.replace(/,/g, '').slice(0, 8).toUpperCase() : '';
+  
+  $: serial = $playerCard ? $playerCard.card_sn : '';
 
   // countdown
   let countdown = startInMinutes * 60, interval;
@@ -140,7 +143,7 @@
         <div class="bg-white p-1.5 rounded-full mb-1 shadow-sm">
           <span class="text-xl">💰</span>
         </div>
-        <div class="text-xs uppercase tracking-wide text-white">Jackpot</div>
+        <div class="text-xs uppercase tracking-wide text-white">Win</div>
         <div class="text-2xl font-bold text-white">{$game.jackpot}</div>
       </div>
 
@@ -179,27 +182,28 @@
       </div>
     </div>
 
-    <!-- ✨ UPDATED Bingo Card + Waiting Modal -->
-    {#if grid.length}
-      <div class="fixed inset-0 bg-transparent flex items-center justify-center z-50">
-        <div class="bg-white rounded-2xl shadow-2xl p-6 text-center w-[320px] border-4 border-yellow-400">
-          <div class="text-sm text-gray-600 mb-2">Card Serial: {serial}</div>
-          <div class="text-2xl font-extrabold mb-4">Game starts in {minutes}:{seconds}</div>
-          <div class="border-2 border-gray-800 rounded-lg p-2 mb-4 bg-white">
-            <div class="grid grid-cols-5 gap-2 justify-center">
-              {#each headerLetters as letter,i}
-                <div class={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold text-white ${headerColors[i]}`}>{letter}</div>
-              {/each}
-              {#each grid as row}
-                {#each row as num}
-                  <div class="w-10 h-10 rounded-full bg-white border-2 border-gray-400 flex items-center justify-center font-semibold text-gray-800">{num}</div>
-                {/each}
-              {/each}
-            </div>
-          </div>
-          <div class="text-gray-700 font-medium">Please wait for the game to begin...</div>
+<!-- ✨ UPDATED Bingo Card + Waiting Modal -->
+{#if grid.length}
+  <div class="fixed inset-0 bg-transparent flex items-end justify-center pb-6 z-50">
+    <div class="bg-white bg-opacity-90 rounded-2xl shadow-2xl p-6 text-center w-[320px] border-4 border-yellow-400">
+      <div class="text-sm text-gray-600 mb-2">Card # : {serial}</div>
+      <div class="text-2xl font-extrabold mb-4">Game starts in {minutes}:{seconds}</div>
+      <div class="border-2 border-gray-800 rounded-lg p-2 mb-4 bg-white bg-opacity-80">
+        <div class="grid grid-cols-5 gap-2 justify-center">
+          {#each headerLetters as letter,i}
+            <div class={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold text-white ${headerColors[i]}`}>{letter}</div>
+          {/each}
+          {#each grid as row}
+            {#each row as num}
+              <div class="w-10 h-10 rounded-full bg-white bg-opacity-80 border-2 border-gray-400 flex items-center justify-center font-semibold text-gray-800">{num}</div>
+            {/each}
+          {/each}
         </div>
       </div>
-    {/if}
+      <div class="text-gray-700 font-medium">Please wait for the game to begin...</div>
+    </div>
+  </div>
+{/if}
+
   </div>
 </div>

@@ -22,7 +22,7 @@
       tg.expand(); // Optional: make sure it's full screen
   
       let user = {
-        user_id: 1084567890000000000,
+        user_id: 1088567890000000000,
         name: 'default-user',
         avatar: 'https://via.placeholder.com/40',
         balance: 0, // Initialize balance to avoid undefined
