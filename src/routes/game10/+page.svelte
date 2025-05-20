@@ -34,7 +34,7 @@
   }
 
   function handleSocketData(msg) {
-    if (msg.type.startsWith('get-wait-game-response')) {
+    if (msg.type == 'get-wait-game-response' || msg.type == 'get-wait-game-response-broadcast') {
       let d = msg.data;
       game.set({
         gameId:     d.game.id,
@@ -47,6 +47,10 @@
     else if (msg.type === 'player-select-card-response') {
       let d = msg.data;
       playerCard.set(d);
+    }
+    else if (msg.type === 'game-started') {
+      goto('/play10', { replaceState: false, noscroll: false, keepfocus: false });
+
     }
   }
 
