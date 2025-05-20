@@ -13,6 +13,7 @@ export function initSocket() {
 
     let port = 22201;
     const socketUrl = `ws://localhost:${port}/v1/ws`;
+    //const socketUrl = `wss://ethobingo.online/v1/ws`;
     
     socket = new WebSocket(socketUrl);
     gsocket.set(socket)
