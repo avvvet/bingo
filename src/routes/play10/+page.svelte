@@ -67,23 +67,23 @@
   </script>
   
   <!-- Root container: flex column to stack header above content -->
-  <div class="min-h-screen bg-gradient-to-br from-orange-300 via-pink-300 to-red-300 p-4 flex flex-col items-center">
+  <div class="min-h-screen bg-gradient-to-br from-orange-300 via-pink-300 to-red-300 pl-1 pt-2 pr-1 flex flex-col items-center">
     <!-- Bright game header -->
-    <div class="w-[360px] mb-6 flex justify-between">
+    <div class="w-[360px] mb-1 flex justify-between">
       <!-- Game Number Box -->
-      <div class="flex-1 mx-1 bg-white rounded-lg p-4 shadow-md text-center">
-        <div class="text-sm uppercase text-gray-500">Game Number</div>
+      <div class="flex-1 m-1 bg-white rounded-lg p-4 shadow-md text-center">
+        <div class="text-sm uppercase text-gray-500">Game #</div>
         <div class="mt-1 text-2xl font-extrabold text-red-600">{gameNumber}</div>
       </div>
       <!-- Players Box -->
-      <div class="flex-1 mx-1 bg-white rounded-lg p-4 shadow-md text-center">
+      <div class="flex-1 m-1 bg-white rounded-lg p-4 shadow-md text-center">
         <div class="text-sm uppercase text-gray-500">Players</div>
         <div class="mt-1 text-2xl font-extrabold text-blue-600">{noPlayers}</div>
       </div>
       <!-- Jackpot Box -->
-      <div class="flex-1 mx-1 bg-white rounded-lg p-4 shadow-md text-center">
-        <div class="text-sm uppercase text-gray-500">Jackpot</div>
-        <div class="mt-1 text-2xl font-extrabold text-green-600">${jackpot}</div>
+      <div class="flex-1 m-1 bg-white rounded-lg p-4 shadow-md text-center">
+        <div class="text-sm uppercase text-gray-500">Win</div>
+        <div class="mt-1 text-2xl font-extrabold text-green-600">{jackpot}</div>
       </div>
     </div>
   
@@ -92,7 +92,7 @@
       <div class="flex space-x-1">
   
         <!-- Central Bingo Draw Panel -->
-        <div class="flex-shrink-0 w-32 border-2 border-white rounded-xl p-3 bg-white">
+        <div class="flex-shrink-0 w-32 border-2 border-white rounded-xl pr-1 bg-white">
           <div class="text-center mb-1 text-gray-800 font-bold">Bingo Draw</div>
           <div class="grid grid-cols-5 gap-1">
             {#each headerLetters as l, i}
@@ -107,7 +107,7 @@
         <!-- Player Side Panel -->
         <div class="flex-1 space-y-2">
           <!-- Number Calling Panel -->
-          <div class="border-2 border-red-500 rounded-xl p-2 bg-gradient-to-r from-yellow-200 to-red-300 text-black text-center">
+          <div class="border-2 border-red-500 h-40 rounded-xl p-2 bg-gradient-to-r from-yellow-200 to-red-300 text-black text-center">
             <div class="text-sm text-gray-400 uppercase mb-1">Current Call</div>
             <div class="w-12 h-12 mx-auto rounded-full bg-yellow-500 flex items-center justify-center text-xl font-bold text-black">{currentNumber}</div>
             <div class="flex space-x-1 overflow-x-auto mt-2">
@@ -138,13 +138,15 @@
               {/each}
             </div>
           </div>
+
+          <!-- Bingo Button Centered Below -->
+          <div class="flex justify-center mt-2">
+            <button class="w-32 bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded-xl shadow-md transition">BINGO!</button>
+          </div>
+
         </div>
       </div>
   
-      <!-- Bingo Button Centered Below -->
-      <div class="flex justify-center mt-2">
-        <button class="w-32 bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded-xl shadow-md transition">BINGO!</button>
-      </div>
     </div>
   </div>
   
