@@ -22,7 +22,7 @@
       tg.expand(); // Optional: make sure it's full screen
   
       let user = {
-        user_id: 1088567890000000000,
+        user_id: 4088567890000000000,
         name: 'default-user',
         avatar: 'https://via.placeholder.com/40',
         balance: 0, // Initialize balance to avoid undefined
@@ -82,93 +82,134 @@
       player.set(user);
     } 
   }
-  </script>
-  
-  <div
-    class="min-h-screen bg-gradient-to-br from-blue-100 via-white to-gray-100 flex flex-col items-center justify-between p-4"
-  >
-    <!-- Top Section: User Info -->
-    <div
-      class="flex justify-between items-center bg-white p-4 rounded-lg shadow-md w-full max-w-md mt-2"
-    >
-      <div class="flex items-center space-x-4">
-        <img
-          src={$player.avatar}
-          alt="User Avatar"
-          class="w-12 h-12 rounded-full"
-        />
-        <h2 class="text-lg font-semibold">{$player.name}</h2>
-      </div>
-      <div class="flex items-center space-x-2">
-        <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-          <path
-            d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12zm1-5a1 1 0 11-2 0 1 1 0 012 0z"
-          />
-        </svg>
-        <p class="text-gray-600">Birr {$player.balance}</p>
+
+  const gameTypes = [
+    {
+      id: 10,
+      title: "Quick Play",
+      subtitle: "Birr 10 Entry",
+      route: "/game10",
+      bgColor: "from-emerald-400 to-teal-500",
+      textColor: "text-white",
+      icon: "⚡",
+      description: "Fast-paced games"
+    },
+    {
+      id: 20,
+      title: "Classic",
+      subtitle: "Birr 20 Entry", 
+      route: "/game20",
+      bgColor: "from-blue-400 to-indigo-500",
+      textColor: "text-white",
+      icon: "🎯",
+      description: "Traditional bingo"
+    }
+    /*
+    {
+      id: 40,
+      title: "Premium",
+      subtitle: "Birr 50 Entry",
+      route: "/game40", 
+      bgColor: "from-amber-400 to-orange-500",
+      textColor: "text-white",
+      icon: "💎",
+      description: "High stakes play"
+    },
+    {
+      id: 50,
+      title: "Elite",
+      subtitle: "Birr 100 Entry",
+      route: "/game50",
+      bgColor: "from-purple-400 to-pink-500", 
+      textColor: "text-white",
+      icon: "👑",
+      description: "Ultimate challenge"
+    }
+      */
+  ];
+</script>
+
+<div class="min-h-screen bg-gradient-to-br from-orange-300 via-pink-300 to-rose-300 p-6">
+  <!-- Header Section -->
+  <div class="max-w-4xl mx-auto">
+    <div class="text-center mb-8">
+      <h1 class="text-4xl font-bold text-white mb-2 drop-shadow-lg">Bingo</h1>
+     <!-- <p class="text-white/80 text-lg">Choose your game mode and start playing!</p> -->
+    </div>
+
+    <!-- User Info Card -->
+    <div class="bg-white/20 backdrop-blur-md rounded-2xl p-4 mb-8 border border-white/30">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+          <div class="relative">
+            <img
+              src={$player.avatar}
+              alt="Avatar"
+              class="w-14 h-14 rounded-full border-3 border-white/50 shadow-lg"
+            />
+            <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-white"></div>
+          </div>
+          <div>
+            <h3 class="text-white font-semibold text-lg">{$player.name}</h3>
+            <p class="text-white/70 text-sm">Active Player</p>
+          </div>
+        </div>
+        <div class="text-right">
+          <div class="flex items-center space-x-2 bg-white/20 rounded-full px-4 py-2">
+            <span class="text-2xl">💰</span>
+            <span class="text-white font-bold">Birr {$player.balance}</span>
+          </div>
+        </div>
       </div>
     </div>
-  
-<!-- Middle Section: Game Types -->
-<div class="grid grid-cols-2 gap-4 w-full max-w-md">
-  <!-- Game 10 (Yellow Theme) -->
-  <button
-    on:click={() => goto("/game10")}
-    class="bg-blue-500 hover:bg-blue-600 text-white font-semibold p-4 rounded-lg shadow-md transition flex items-center justify-center space-x-2 aspect-square border-2 border-blue-800"
-  >
-    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-      <path
-        d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12zm1-5a1 1 0 11-2 0 1 1 0 012 0z"
-      />
-    </svg>
-    <span>Birr 10 Bingo</span>
-  </button>
 
-  <!-- Game 20 (Green Theme) -->
-  <button
-    on:click={() => goto("/game20")}
-    class="bg-green-500 hover:bg-green-600 text-green-800 font-semibold p-4 rounded-lg shadow-md transition flex items-center justify-center space-x-2 aspect-square border-2 border-green-700"
-  >
-    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-      <path
-        d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12zm1-5a1 1 0 11-2 0 1 1 0 012 0z"
-      />
-    </svg>
-    <span>Birr 20 Bingo</span>
-  </button>
+    <!-- Game Selection Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      {#each gameTypes as game}
+        <button
+          on:click={() => goto(game.route)}
+          class="group relative overflow-hidden bg-gradient-to-br {game.bgColor} p-6 rounded-3xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 border border-white/20"
+        >
+          <!-- Background Pattern -->
+          <div class="absolute inset-0 opacity-10">
+            <div class="absolute top-4 right-4 text-6xl opacity-20">{game.icon}</div>
+            <div class="absolute bottom-4 left-4 w-20 h-20 bg-white/10 rounded-full"></div>
+            <div class="absolute top-1/2 left-1/2 w-32 h-32 bg-white/5 rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
+          </div>
 
-  <!-- Game 40 (Orange Theme) -->
-  <button
-    on:click={() => goto("/game40")}
-    class="bg-orange-500 hover:bg-orange-600 text-orange-800 font-semibold p-4 rounded-lg shadow-md transition flex items-center justify-center space-x-2 aspect-square border-2 border-orange-700"
-  >
-    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-      <path
-        d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12zm1-5a1 1 0 11-2 0 1 1 0 012 0z"
-      />
-    </svg>
-    <span>Birr 50 Bingo</span>
-  </button>
+          <!-- Content -->
+          <div class="relative z-10 text-left">
+            <div class="flex items-center justify-between mb-4">
+              <div class="text-4xl">{game.icon}</div>
+              <div class="bg-white/20 rounded-full px-3 py-1">
+                <span class="text-white text-xs font-medium">Entry Fee</span>
+              </div>
+            </div>
+            
+            <h3 class="text-2xl font-bold {game.textColor} mb-2">{game.title}</h3>
+            <p class="text-white/90 text-lg font-semibold mb-2">{game.subtitle}</p>
+            <p class="text-white/70 text-sm mb-4">{game.description}</p>
+            
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2 text-white/80">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="text-sm">Available Now</span>
+              </div>
+              
+              <div class="bg-white/20 rounded-full p-2 group-hover:bg-white/30 transition-colors">
+                <svg class="w-5 h-5 text-white transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                </svg>
+              </div>
+            </div>
+          </div>
 
-  <!-- Game 50 (Purple Theme) -->
-  <button
-    on:click={() => goto("/game50")}
-    class="bg-yellow-100 hover:bg-yellow-200 text-white font-semibold p-4 rounded-lg shadow-md transition flex items-center justify-center space-x-2 aspect-square border-2 border-yellow-800 bg-yellow-500"
-  >
-    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-      <path
-        d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12zm1-5a1 1 0 11-2 0 1 1 0 012 0z"
-      />
-    </svg>
-    <span>Birr 100 Bingo</span>
-  </button>
-</div>
-
-  
-    <!-- Bottom Section: Continue Button -->
-    <button
-      class="bg-green-500 text-white font-semibold py-3 px-8 rounded-lg shadow-md hover:bg-green-600 transition w-full max-w-md mb-3"
-    >
-      Continue
-    </button>
+          <!-- Hover Effect -->
+          <div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        </button>
+      {/each}
+    </div>
   </div>
+</div>

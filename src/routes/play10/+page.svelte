@@ -1,11 +1,15 @@
 <script>
   // @ts-nocheck
   import { onMount, onDestroy } from 'svelte';
-  import { playerCard } from '../../store';
+  import { get } from 'svelte/store';
+  import { playerCard, player, game, gamePlayers } from '../../store';
   import { initSocket, socketMessage, socketConnected, gsocket } from '$lib/socket';
+  import { goto } from '$app/navigation';
 
   // Static Game Variables (demo)
-  let gameNumber = null;
+  let gNum = null;  //game number
+  $: gNum = $game.gameNumber;
+
   const noPlayers = 7;
   const jackpot = 4000;
 
@@ -16,42 +20,76 @@
   // Bingo draw numbers
   const bingoNumbers = Array.from({ length: 75 }, (_, i) => i + 1);
 
-  // Player card grid (use sample if store not wired)
-  let cardGrid = [];
-  const sampleCardNumbers = [
-    5,20,33,49,70,
-    12,25,34,58,62,
-    14,27,42,53,71,
-    8,18,35,46,67,
-    2,29,31,54,73
-  ];
-  const sampleCardGrid = [];
-  for (let r = 0; r < 5; r++) {
-    sampleCardGrid.push(sampleCardNumbers.slice(r*5, r*5 + 5));
-  }
-
-  $: if (typeof $playerCard === 'string' && $playerCard.includes(',')) {
-    const nums = $playerCard.split(',').map(s => +s.trim());
-    if (nums.length === 25) {
-      cardGrid = [];
-      for (let r = 0; r < 5; r++) {
-        cardGrid.push(nums.slice(r*5, r*5 + 5));
-      }
-    }
-  }
-  $: displayGrid = cardGrid.length === 25 ? cardGrid : sampleCardGrid;
-
+  
   // Called numbers
   let calledNumbers = [];
   let recentNumbers = [];
   let currentNumber = null;
 
-  // Marks for interactive card
-  let marks = new Set();
-  function toggleMark(num) {
-    if (marks.has(num)) marks.delete(num);
-    else marks.add(num);
+  // Marks for interactive card - using array to store marked numbers
+  let marks = Array(25).fill(0);
+  let displayGrid = [];
+  let numbers = [], grid = [];
+
+  onMount(() => {
+    numbers = $playerCard.data.split(',').map(s => s.trim()).filter(Boolean).map(n => +n);
+    if (numbers.length === 25) {
+      grid = [];
+      for (let r = 0; r < 5; r++) {
+        grid.push(numbers.slice(r*5, r*5 + 5));
+      }
+
+      const centerNum = grid[2][2];
+      marks[12] = centerNum;
+    } else {
+      grid = [];
+    }
+
+  });
+
+  function claimBingo() {
+    const payload = {
+      type: 'claim-bingo',
+      data: {
+        gtype: 1,
+        gameId: $game.gameId,   
+        userId: $player.user_id,
+        marks: [...marks]      // slice to plain array
+      }
+    };
+
+    
+    if ($gsocket?.readyState === WebSocket.OPEN) {
+      $gsocket.send(JSON.stringify(payload));
+    }
   }
+
+  function toggleMark(num, i, j) {
+    // compute flat index (0–24) from (i,j)
+    const idx = j * 5 + i;
+
+    // Check if it's the center free square
+    const centerNumber = grid[2] && grid[2][2];
+    const isCenter = num === centerNumber;
+    
+    // Don't allow unmarking the center free square
+    if (isCenter && marks.includes(num)) {
+      return;
+    }
+    
+    // Only allow marking if the number has been called or it's the center free square
+    const isNumberCalled = calledNumbersSet.has(num);
+    
+    if (!isCenter && !isNumberCalled) {
+      return; // Don't allow marking if number hasn't been called
+    }
+
+    // once valid, mark the slot (never unmark)
+    if (marks[idx] === 0) {
+      marks[idx] = num;
+    }
+  }
+
 
   let interval;
 
@@ -116,29 +154,32 @@
   function handleSocketData(msg) {
     if (msg.type === 'bingo-call') {
       const d = msg.data;       // already parsed object
-
-      // transform history and current number
-      calledNumbers  = d.history.map(getBingoLabel);
-      recentNumbers  = calledNumbers.slice(-6);
-      currentNumber  = getBingoLabel(d.number);
-
-      gameNumber = d.game_no
+      
+      //check if this call belong to this game_id 
+      if (d.game_id == $game.gameId) {
+        // transform history and current number
+        calledNumbers  = d.history.map(getBingoLabel);
+        recentNumbers  = calledNumbers.slice(-6);
+        currentNumber  = getBingoLabel(d.number);
+      }
     }
-    // ... other cases …
+    else if (msg.type === 'game-finished') {
+      goto('/win', { replaceState: false, noscroll: false, keepfocus: false });
+    }
+    
   }
+    
+  const letterColorsMap = {
+    B: 'bg-red-500',
+    I: 'bg-yellow-500',
+    N: 'bg-green-500',
+    G: 'bg-blue-500',
+    O: 'bg-purple-500'
+  };
 
-    // …inside your <script> block…
-const letterColorsMap = {
-  B: 'bg-red-500',
-  I: 'bg-yellow-500',
-  N: 'bg-green-500',
-  G: 'bg-blue-500',
-  O: 'bg-purple-500'
-};
-
-function letterOf(bingoLabel) {
-  return bingoLabel.split('-')[0];
-}
+  function letterOf(bingoLabel) {
+    return bingoLabel.split('-')[0];
+  }
 
 </script>
 
@@ -149,17 +190,17 @@ function letterOf(bingoLabel) {
     <!-- Game Number Box -->
     <div class="flex-1 m-1 bg-white rounded-lg p-4 shadow-md text-center">
       <div class="text-sm uppercase text-gray-500">Game #</div>
-      <div class="mt-1 text-2xl font-extrabold text-red-600">{gameNumber}</div>
+      <div class="mt-1 text-2xl font-extrabold text-red-600">{gNum}</div>
     </div>
     <!-- Players Box -->
     <div class="flex-1 m-1 bg-white rounded-lg p-4 shadow-md text-center">
       <div class="text-sm uppercase text-gray-500">Players</div>
-      <div class="mt-1 text-2xl font-extrabold text-blue-600">{noPlayers}</div>
+      <div class="mt-1 text-2xl font-extrabold text-blue-600">{$gamePlayers.length}</div>
     </div>
     <!-- Jackpot Box -->
     <div class="flex-1 m-1 bg-white rounded-lg p-4 shadow-md text-center">
-      <div class="text-sm uppercase text-gray-500">Win</div>
-      <div class="mt-1 text-2xl font-extrabold text-green-600">{jackpot}</div>
+      <div class="text-sm uppercase text-gray-500">BIRR</div>
+      <div class="mt-1 text-2xl font-extrabold text-green-600">{$gamePlayers.length * 10}</div>
     </div>
   </div>
 
@@ -224,21 +265,27 @@ function letterOf(bingoLabel) {
 
         <!-- Interactive 5x5 Player Card -->
         <div class="border-2 border-green-500 rounded-xl p-2 bg-gradient-to-br from-green-200 to-green-400">
-          <div class="text-center text-gray-900 font-bold mb-2">Your Bingo Card</div>
-          <div class="grid grid-cols-5 gap-1 mb-1">
+          <div class="text-center text-gray-900 font-bold mb-2">Your Bingo Card # {$playerCard.card_sn}</div>
+          <div class="grid grid-cols-5 gap-1 mb-4">
             {#each headerLetters as l, i}
               <div class={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white ${headerColors[i]}`}>{l}</div>
             {/each}
           </div>
           <div class="grid grid-cols-5 gap-1">
-            {#each displayGrid as row}
-              {#each row as num}
+            {#each grid as row, rowIndex}
+              {#each row as num, colIndex}
+                {@const isCenter = rowIndex === 2 && colIndex === 2}
+                {@const isMarked = marks.includes(num)}
+                {@const canMark = isCenter || calledNumbersSet.has(num)}
                 <button
-                  on:click={() => toggleMark(num)}
-                  class={`w-8 h-8 rounded-full flex items-center justify-center text-xs transition
-                    ${marks.has(num) ? 'bg-red-500 text-white' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
+                  on:click={() => toggleMark(num, rowIndex, colIndex)}
+                  class={`w-8 h-8 rounded-full flex items-center justify-center text-xs transition-all duration-200 select-none
+                    ${isMarked 
+                      ? (isCenter ? 'bg-black text-white shadow-md' : 'bg-black text-white shadow-md') 
+                      : 'bg-white text-gray-800 border border-gray-300 active:bg-gray-200 active:scale-95 touch-manipulation'
+                    }`}
                 >
-                  {num}
+                  {isCenter ? 'FREE' : num}
                 </button>
               {/each}
             {/each}
@@ -247,7 +294,7 @@ function letterOf(bingoLabel) {
 
         <!-- Bingo Button Centered Below -->
         <div class="flex justify-center mt-2">
-          <button class="w-32 bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded-xl shadow-md transition">BINGO!</button>
+          <button on:click={() => claimBingo()} class="w-32 bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded-xl shadow-md transition">BINGO!</button>
         </div>
 
       </div>

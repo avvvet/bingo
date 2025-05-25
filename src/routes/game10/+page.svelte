@@ -6,7 +6,7 @@
   import { goto } from '$app/navigation';
 
   const cards = Array.from({ length: 100 }, (_, i) => i + 1);
-  const startInMinutes = 3;
+  const startInMinutes = 0.5; // 30 seconds
 
   let showTooltip = false;
 
@@ -21,7 +21,7 @@
   const getWaitGame = () => {
     const payload = {
       type: 'get-wait-game',
-      data: { user_id: $player.user_id, gtype: 1 },
+      data: { user_id: $player.user_id, gtype: 1},
     };
     if ($gsocket?.readyState === WebSocket.OPEN) {
       $gsocket.send(JSON.stringify(payload));
@@ -34,23 +34,28 @@
   }
 
   function handleSocketData(msg) {
-    if (msg.type == 'get-wait-game-response' || msg.type == 'get-wait-game-response-broadcast') {
+    if (msg.type == 'get-wait-game-response') {
       let d = msg.data;
       game.set({
-        gameId:     d.game.id,
+        gameId:     d.game.id, 
         gameNumber: d.game.game_no,
         noPlayers:  getPlayerCount(d.players),
         jackpot:    800
       });
       gamePlayers.set(d.players);
     }
+    else if (msg.type === 'get-wait-game-response-broadcast') {
+      let d = msg.data;
+      console.log("yelowwwwwwwwwwwwwwwww", d)
+      gamePlayers.set(d.players);
+    }
     else if (msg.type === 'player-select-card-response') {
       let d = msg.data;
+      console.log("card selected ", d)
       playerCard.set(d);
     }
     else if (msg.type === 'game-started') {
       goto('/play10', { replaceState: false, noscroll: false, keepfocus: false });
-
     }
   }
 
@@ -85,7 +90,6 @@
   // Bingo reactive grid
   let numbers = [], grid = [];
   const headerLetters = ['B','I','N','G','O'];
-  const headerColors  = ['bg-red-500','bg-yellow-500','bg-green-500','bg-blue-500','bg-purple-500'];
 
   $: if ($playerCard) {
     numbers = $playerCard.data.split(',').map(s => s.trim()).filter(Boolean).map(n => +n);
@@ -99,9 +103,6 @@
     }
   }
 
-  // derive a short serial from the first 8 chars of the card data
-  //$: serial = $playerCard ? $playerCard.replace(/,/g, '').slice(0, 8).toUpperCase() : '';
-  
   $: serial = $playerCard ? $playerCard.card_sn : '';
 
   // countdown
@@ -118,96 +119,80 @@
   $: seconds = String(countdown%60).padStart(2,'0');
 </script>
 
-<div class="min-h-screen bg-blue-100 p-4 flex justify-center">
-  <div class="w-[360px] relative">
+<div class="min-h-screen bg-gradient-to-br from-orange-300 via-pink-300 to-red-300 p-4">
+  <div class="max-w-md mx-auto">
 
-
-    <!-- Top Section: Dynamic Game Stat Cards (Smaller) -->
-    <div class="grid grid-cols-2 gap-3 mb-4">
-      <!-- Game Number Card -->
-      <div class="flex flex-col items-center bg-gradient-to-br from-yellow-400 to-orange-500 p-3 rounded-lg shadow-md transform hover:scale-105 transition">
-        <div class="bg-white p-1.5 rounded-full mb-1 shadow-sm">
-          <span class="text-xl">🔵</span>
-        </div>
-        <div class="text-xs uppercase tracking-wide text-white">Game Number</div>
-        <div class="text-2xl font-bold text-white">{$game.gameNumber}</div>
+    <!-- Header Stats - Single Row with Medium Height -->
+    <div class="grid grid-cols-3 gap-2 mb-6">
+      <!-- Game Number -->
+      <div class="bg-gray-800 bg-opacity-60 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-gray-600">
+        <div class="text-xs text-gray-300 font-medium">Game</div>
+        <div class="text-lg font-bold text-white">{$game.gameNumber}</div>
       </div>
 
-      <!-- Players Card -->
-      <div class="flex flex-col items-center bg-gradient-to-br from-blue-400 to-purple-500 p-3 rounded-lg shadow-md transform hover:scale-105 transition">
-        <div class="bg-white p-1.5 rounded-full mb-1 shadow-sm">
-          <span class="text-xl">👤</span>
-        </div>
-        <div class="text-xs uppercase tracking-wide text-white">Players</div>
-        <div class="text-2xl font-bold text-white">{$game.noPlayers}</div>
+      <!-- Players -->
+      <div class="bg-gray-800 bg-opacity-60 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-gray-600">
+        <div class="text-xs text-gray-300 font-medium">Players</div>
+        <div class="text-lg font-bold text-white">{ $gamePlayers?.players?.length ?? 0 }</div>
       </div>
 
-      <!-- Jackpot Card -->
-      <div class="flex flex-col items-center bg-gradient-to-br from-green-400 to-teal-500 p-3 rounded-lg shadow-md transform hover:scale-105 transition">
-        <div class="bg-white p-1.5 rounded-full mb-1 shadow-sm">
-          <span class="text-xl">💰</span>
-        </div>
-        <div class="text-xs uppercase tracking-wide text-white">Win</div>
-        <div class="text-2xl font-bold text-white">{$game.jackpot}</div>
-      </div>
-
-      <!-- Timer Card -->
-      <div class="flex flex-col items-center bg-gradient-to-br from-red-400 to-pink-500 p-3 rounded-lg shadow-md transform hover:scale-105 transition">
-        <div class="bg-white p-1.5 rounded-full mb-1 shadow-sm">
-          <span class="text-xl">⏱️</span>
-        </div>
-        <div class="text-xs uppercase tracking-wide text-white">Starts In</div>
-        <div class="text-2xl font-bold text-white">{minutes}:{seconds}</div>
+      <!-- Jackpot -->
+      <div class="bg-gray-800 bg-opacity-60 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-gray-600">
+        <div class="text-xs text-gray-300 font-medium">BIRR</div>
+        <div class="text-lg font-bold text-white">{($gamePlayers?.players?.length ?? 0) * 10}</div>
       </div>
     </div>
 
 
-    <!-- Cards Section with Pulsing Effect & Tooltip -->
-    <div class="relative mb-auto">
-      {#if showTooltip}
-        <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-yellow-300 text-black rounded-full px-3 py-1 text-sm font-semibold animate-pulse">
-          Tap a Bingo chip to select!
-        </div>
-      {/if}
-      <div class="grid grid-cols-10 gap-2 justify-center animate-pulse">
+
+    <!-- Number Selection Grid - Square Cards -->
+    <div class="bg-white rounded-2xl p-4 shadow-xl mb-6 border border-gray-200">
+      <h3 class="text-lg font-bold text-gray-800 mb-4 text-center">
+        {#if grid.length}
+          Game starting in {countdown} seconds...
+        {:else}
+          Select Your Number
+        {/if}
+      </h3>
+      <div class="grid grid-cols-10 gap-1">
         {#each cards as card}
           <button
             on:click={() => handleCardClick(card)}
-            class={`relative w-10 h-10 rounded-full flex items-center justify-center font-bold text-white
-                    transition-transform duration-200
-                    ${isCardHighlighted(card)
-                      ? 'bg-red-500 ring-4 ring-red-300 shadow-lg scale-110'
-                      : 'bg-gray-300 hover:bg-gray-400 hover:scale-105'}`}
+            class="aspect-square flex items-center justify-center text-sm font-semibold rounded-lg transition-all duration-200 border-2
+                   {isCardHighlighted(card)
+                     ? 'bg-red-500 text-white shadow-lg transform scale-105 ring-2 ring-red-300 border-red-400'
+                     : 'bg-white text-gray-800 hover:bg-gray-100 hover:shadow-md active:scale-95 border-gray-300 shadow-sm'}"
           >
-            <span class="absolute inset-0 rounded-full bg-gradient-to-br from-white to-transparent opacity-20"></span>
-            <span class="z-10">{card}</span>
+            {card}
           </button>
         {/each}
       </div>
     </div>
 
-<!-- ✨ UPDATED Bingo Card + Waiting Modal -->
-{#if grid.length}
-  <div class="fixed inset-0 bg-transparent flex items-end justify-center pb-6 z-50">
-    <div class="bg-white bg-opacity-90 rounded-2xl shadow-2xl p-6 text-center w-[320px] border-4 border-yellow-400">
-      <div class="text-sm text-gray-600 mb-2">Card # : {serial}</div>
-      <div class="text-2xl font-extrabold mb-4">Game starts in {minutes}:{seconds}</div>
-      <div class="border-2 border-gray-800 rounded-lg p-2 mb-4 bg-white bg-opacity-80">
-        <div class="grid grid-cols-5 gap-2 justify-center">
-          {#each headerLetters as letter,i}
-            <div class={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold text-white ${headerColors[i]}`}>{letter}</div>
+    <!-- Bingo Card Display -->
+    {#if grid.length}
+      <div class="grid grid-cols-5 gap-1 max-w-52 mx-auto shadow-2xl rounded-lg p-2 bg-white">
+        <!-- BINGO Headers -->
+        {#each headerLetters as letter, i}
+          <div class="w-9 h-9 flex items-center justify-center text-sm font-bold text-white rounded
+                     {i === 0 ? 'bg-red-500' : 
+                      i === 1 ? 'bg-yellow-500' : 
+                      i === 2 ? 'bg-green-500' : 
+                      i === 3 ? 'bg-blue-500' : 'bg-purple-500'}">
+            {letter}
+          </div>
+        {/each}
+        
+        <!-- Number Grid -->
+        {#each grid as row}
+          {#each row as num}
+            <div class="w-9 h-9 flex items-center justify-center text-sm font-semibold bg-gray-50 border border-gray-300 rounded">
+              {num}
+            </div>
           {/each}
-          {#each grid as row}
-            {#each row as num}
-              <div class="w-10 h-10 rounded-full bg-white bg-opacity-80 border-2 border-gray-400 flex items-center justify-center font-semibold text-gray-800">{num}</div>
-            {/each}
-          {/each}
-        </div>
+        {/each}
       </div>
-      <div class="text-gray-700 font-medium">Please wait for the game to begin...</div>
-    </div>
-  </div>
-{/if}
+    {/if}
 
   </div>
 </div>
