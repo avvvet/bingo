@@ -31,10 +31,6 @@
   let displayGrid = [];
   let numbers = [], grid = [];
 
-  // Winner modal state
-  let showWinnerModal = false;
-  let winnerData = null;
-
   onMount(() => {
     numbers = $playerCard.data.split(',').map(s => s.trim()).filter(Boolean).map(n => +n);
     if (numbers.length === 25) {
@@ -175,13 +171,11 @@
     PlayerId int64  `json:"player_id"`
     Name     string `json:"name"`
     Avatar   string `json:"avatar"`
-    Marks    []int  `json:"marks"` 
+    Marks    []int  `json:"marks"` /
 */
 
       if (d.game_id == $game.gameId) {
-        // Show winner modal
-        winnerData = d;
-        showWinnerModal = true;
+        // luanch a modal for winning bingo 
       }
       
     }
@@ -198,32 +192,6 @@
 
   function letterOf(bingoLabel) {
     return bingoLabel.split('-')[0];
-  }
-
-  function closeWinnerModal() {
-    /*
-    showWinnerModal = false;
-    winnerData = null;
-    */
-
-    goto('/')
-  }
-
-  function playAgain() {
-    closeWinnerModal();
-    // Navigate to game selection or restart logic
-    goto('/game10');
-  }
-
-  // Helper function to convert marks array to grid for display
-  function getWinnerGrid(marks) {
-    if (!marks || marks.length !== 25) return [];
-    
-    const grid = [];
-    for (let r = 0; r < 5; r++) {
-      grid.push(marks.slice(r * 5, r * 5 + 5));
-    }
-    return grid;
   }
 
 </script>
@@ -352,84 +320,3 @@
 
   </div>
 </div>
-
-<!-- Winner Modal -->
-{#if showWinnerModal && winnerData}
-  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-    <div class="bg-gradient-to-br from-yellow-200 via-orange-200 to-pink-200 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6 transform animate-pulse">
-      <!-- Close button -->
-      <button 
-        on:click={closeWinnerModal}
-        class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold"
-      >
-        ×
-      </button>
-
-      <!-- Trophy and Winner Info -->
-      <div class="text-center mb-6">
-        <div class="text-6xl mb-4">🏆</div>
-        <h2 class="text-2xl font-bold text-gray-800 mb-2">BINGO WINNER!</h2>
-        
-        <!-- Winner Avatar and Name -->
-        <div class="flex items-center justify-center space-x-3 mb-4">
-          {#if winnerData.avatar}
-            <img 
-              src={winnerData.avatar} 
-              alt="Winner Avatar" 
-              class="w-12 h-12 rounded-full border-4 border-yellow-400 shadow-lg"
-            />
-          {:else}
-            <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg border-4 border-yellow-400 shadow-lg">
-              {winnerData.name ? winnerData.name.charAt(0).toUpperCase() : 'W'}
-            </div>
-          {/if}
-          <div class="text-xl font-bold text-gray-800">{winnerData.name || 'Anonymous'}</div>
-        </div>
-      </div>
-
-      <!-- Winning Bingo Card -->
-      <div class="bg-white rounded-xl p-4 mb-6 shadow-inner">
-        <div class="text-center text-gray-700 font-semibold mb-3 text-sm">Winning Card</div>
-        
-        <!-- BINGO Header -->
-        <div class="grid grid-cols-5 gap-1 mb-2">
-          {#each headerLetters as l, i}
-            <div class={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white ${headerColors[i]}`}>
-              {l}
-            </div>
-          {/each}
-        </div>
-
-        <!-- Winner's Card Grid -->
-        <div class="grid grid-cols-5 gap-1">
-          {#each getWinnerGrid(winnerData.marks) as row, rowIndex}
-            {#each row as num, colIndex}
-              {@const isCenter = rowIndex === 2 && colIndex === 2}
-              {@const isMarked = num !== 0}
-              <div class={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-200
-                ${isMarked 
-                  ? (isCenter 
-                    ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-black shadow-lg border-2 border-yellow-600' 
-                    : 'bg-gradient-to-r from-green-400 to-green-500 text-white shadow-lg border-2 border-green-600'
-                  ) 
-                  : 'bg-gray-200 text-gray-400 border border-gray-300'
-                }`}>
-                {isCenter ? 'FREE' : (num !== 0 ? num : '')}
-              </div>
-            {/each}
-          {/each}
-        </div>
-      </div>
-
-      <!-- Play Again Button -->
-      <div class="text-center">
-        <button 
-          on:click={playAgain}
-          class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105"
-        >
-          🎮 Play Again
-        </button>
-      </div>
-    </div>
-  </div>
-{/if}

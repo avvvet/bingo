@@ -46,12 +46,10 @@
     }
     else if (msg.type === 'get-wait-game-response-broadcast') {
       let d = msg.data;
-      console.log("yelowwwwwwwwwwwwwwwww", d)
       gamePlayers.set(d.players);
     }
     else if (msg.type === 'player-select-card-response') {
       let d = msg.data;
-      console.log("card selected ", d)
       playerCard.set(d);
     }
     else if (msg.type === 'game-started') {
@@ -133,13 +131,13 @@
       <!-- Players -->
       <div class="bg-gray-800 bg-opacity-60 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-gray-600">
         <div class="text-xs text-gray-300 font-medium">Players</div>
-        <div class="text-lg font-bold text-white">{ $gamePlayers?.players?.length ?? 0 }</div>
+        <div class="text-lg font-bold text-white">{ $gamePlayers?.length ?? 0 }</div>
       </div>
 
       <!-- Jackpot -->
       <div class="bg-gray-800 bg-opacity-60 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-gray-600">
         <div class="text-xs text-gray-300 font-medium">BIRR</div>
-        <div class="text-lg font-bold text-white">{($gamePlayers?.players?.length ?? 0) * 10}</div>
+        <div class="text-lg font-bold text-white">{($gamePlayers?.length ?? 0) * 10}</div>
       </div>
     </div>
 
