@@ -169,15 +169,6 @@
     }
     else if (msg.type === 'game-finished') {
       const d = msg.data;
-/*
-    Gtype    int    `json:"gtype"`
-    Gid      int    `json:"game_id"`
-    PlayerId int64  `json:"player_id"`
-    Name     string `json:"name"`
-    Avatar   string `json:"avatar"`
-    Marks    []int  `json:"marks"` 
-*/
-
       if (d.game_id == $game.gameId) {
         // Show winner modal
         winnerData = d;
@@ -205,7 +196,6 @@
     showWinnerModal = false;
     winnerData = null;
     */
-
     goto('/')
   }
 
@@ -219,9 +209,16 @@
   function getWinnerGrid(marks) {
     if (!marks || marks.length !== 25) return [];
     
+    // Create 5x5 grid with proper BINGO column ordering
     const grid = [];
-    for (let r = 0; r < 5; r++) {
-      grid.push(marks.slice(r * 5, r * 5 + 5));
+    for (let row = 0; row < 5; row++) {
+      const rowData = [];
+      for (let col = 0; col < 5; col++) {
+        // Convert from column-major (BINGO style) to row-major indexing
+        const index = col * 5 + row;
+        rowData.push(marks[index]);
+      }
+      grid.push(rowData);
     }
     return grid;
   }
