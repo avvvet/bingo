@@ -5,4 +5,5 @@ export const player = writable({});
 export const game = writable({})
 export const gamePlayers = writable([])
 export const playerCard = writable("")
+export const balance = writable(0)
 
