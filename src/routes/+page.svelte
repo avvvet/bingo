@@ -496,7 +496,7 @@
                 
                 <div>
                   <p class="font-medium text-gray-800">CBE</p>
-                  <p class="text-sm text-gray-600">1000243543488</p>
+                  <p class="text-sm text-gray-600">100000000000</p>
                 </div>
               </div>
               <div class="text-right">
