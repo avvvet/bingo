@@ -254,9 +254,9 @@
 
       <!-- Quick Amount Selection -->
       <div class="mb-6">
-        <label class="block text-sm font-medium text-gray-700 mb-3">
+        <h3 class="block text-sm font-medium text-gray-700 mb-3">
           Quick Amount Selection
-        </label>
+        </h3>
         <div class="grid grid-cols-2 gap-3">
           {#each presetAmounts as amount}
             <button
