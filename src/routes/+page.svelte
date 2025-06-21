@@ -11,13 +11,14 @@
   } from '$lib/user';
   import UpUpGoLogo from '$lib/components/UpUpGoLogo.svelte';
 
-  let hasInitialized = false; // Add this flag
+  let hasInitialized = false;
+  let showUserIdModal = false; // State to control user ID modal visibility
+  let copySuccess = false; // State for copy feedback
 
   onMount(async () => {
     // Initialize user and socket
     await initializeUser();
   });
-
 
   // Only send init payload once
   $: if ($socketConnected && !hasInitialized) {
@@ -41,8 +42,47 @@
     }
   }
 
+  // Show user ID modal
+  function showUserId() {
+    showUserIdModal = true;
+  }
+
+  // Close user ID modal
+  function closeUserIdModal() {
+    showUserIdModal = false;
+    copySuccess = false; // Reset copy success state when closing
+  }
+
+  // Copy user ID to clipboard
+  async function copyUserId() {
+    try {
+      await navigator.clipboard.writeText($player.user_id.toString());
+      copySuccess = true;
+      setTimeout(() => {
+        copySuccess = false;
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy user ID:', err);
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = $player.user_id.toString();
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      copySuccess = true;
+      setTimeout(() => {
+        copySuccess = false;
+      }, 2000);
+    }
+  }
+
   function goToDeposit() {
     goto('/deposit');
+  }
+
+  function goToTransfer() {
+    goto('/transfer');
   }
 
   function goToWithdraw() {
@@ -118,12 +158,10 @@
   <div class="max-w-6xl mx-auto flex-1 flex flex-col">
 
     <!-- Header with Logo - Moved to top -->
-    <div class="text-center pt-4 pb-6">
-      <div class="mb-3">
+    <div class="text-center pt-1 pb-2">
+      <div class="mb-1">
         <UpUpGoLogo size="xl" animated={true} variant="white" />
       </div>
-      <h1 class="text-white text-xl font-bold mb-1">UpUpGo!</h1>
-      
     </div>
     
     <!-- User Info Card -->
@@ -140,7 +178,20 @@
           </div>
           <div>
             <h3 class="text-white font-semibold text-lg">{$player.name}</h3>
-            <p class="text-white/70 text-sm">Active Player</p>
+            <div class="flex items-center space-x-2">
+              <p class="text-white/70 text-sm">Active Player</p>
+              <!-- User ID Button -->
+              <button
+                on:click={showUserId}
+                class="text-white/60 hover:text-white/90 transition-colors text-xs bg-white/10 hover:bg-white/20 rounded-full px-2 py-1 flex items-center space-x-1"
+                title="Show User ID"
+              >
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V4a2 2 0 114 0v2m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/>
+                </svg>
+                <span>ID</span>
+              </button>
+            </div>
           </div>
         </div>
         <div class="text-right">
@@ -152,26 +203,119 @@
       </div>
     </div>
 
+    <!-- Copy Success Toast -->
+    {#if copySuccess}
+      <div class="fixed top-4 right-4 z-50 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 animate-bounce">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+        <span class="text-sm font-medium">User ID copied!</span>
+      </div>
+    {/if}
+
+    <!-- User ID Modal -->
+    {#if showUserIdModal}
+      <div 
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" 
+        on:click={closeUserIdModal}
+        on:keydown={(e) => e.key === 'Escape' && closeUserIdModal()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="user-id-modal-title"
+        tabindex="-1"
+      >
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div 
+          class="bg-white rounded-3xl p-6 max-w-sm w-full mx-4 shadow-2xl" 
+          on:click|stopPropagation
+          on:keydown|stopPropagation
+        >
+          
+          <!-- Modal Header -->
+          <div class="text-center mb-6">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 mb-4">
+              <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V4a2 2 0 114 0v2m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/>
+              </svg>
+            </div>
+            
+            <h3 id="user-id-modal-title" class="text-xl font-bold text-gray-900 mb-2">Your User ID</h3>
+            <p class="text-gray-600 text-sm leading-relaxed">Share this ID with others to receive transfers</p>
+          </div>
+          
+          <!-- User ID Display -->
+          <div class="bg-gray-50 rounded-xl p-4 mb-6 border-2 border-dashed border-gray-200">
+            <div class="text-center">
+              <p class="text-xs text-gray-500 mb-1">User ID</p>
+              <p class="text-2xl font-mono font-bold text-gray-800 tracking-wider">{$player.user_id}</p>
+            </div>
+          </div>
+          
+          <!-- Modal Actions -->
+          <div class="flex gap-3">
+            <button
+              on:click={copyUserId}
+              class="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-semibold flex items-center justify-center space-x-2"
+            >
+              {#if copySuccess}
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span>Copied!</span>
+              {:else}
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+                <span>Copy ID</span>
+              {/if}
+            </button>
+            
+            <button
+              on:click={closeUserIdModal}
+              class="flex-1 px-4 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-all font-semibold"
+            >
+              Close
+            </button>
+          </div>
+          
+          <!-- Additional Info -->
+          <div class="mt-4 text-center">
+            <p class="text-xs text-gray-500">💡 Others can send you money using this ID</p>
+          </div>
+        </div>
+      </div>
+    {/if}
+
     <!-- Wallet Actions -->
-    <div class="grid grid-cols-2 gap-3 mb-6">
+    <div class="grid grid-cols-3 gap-2 mb-6">
       <button
         on:click={goToDeposit}
-        class="bg-gradient-to-r from-green-400 to-green-600 text-white p-3 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2"
+        class="bg-gradient-to-r from-green-400 to-green-600 text-white p-3 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center space-y-1"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
         </svg>
-        <span class="font-semibold">Deposit</span>
+        <span class="font-semibold text-sm">Deposit</span>
+      </button>
+      
+      <button
+        on:click={goToTransfer}
+        class="bg-gradient-to-r from-blue-400 to-purple-500 text-white p-3 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center space-y-1"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+        </svg>
+        <span class="font-semibold text-sm">Transfer</span>
       </button>
       
       <button
         on:click={goToWithdraw}
-        class="bg-gradient-to-r from-orange-400 to-red-500 text-white p-3 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2"
+        class="bg-gradient-to-r from-orange-400 to-red-500 text-white p-3 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex flex-col items-center justify-center space-y-1"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
         </svg>
-        <span class="font-semibold">Withdraw</span>
+        <span class="font-semibold text-sm">Withdraw</span>
       </button>
     </div>
 
