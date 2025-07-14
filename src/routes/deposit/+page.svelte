@@ -5,10 +5,11 @@
   import { socketMessage, gsocket } from '$lib/socket';
   import { goto } from '$app/navigation';
   import UpUpGoLogo from '$lib/components/UpUpGoLogo.svelte';
-  import { PUBLIC_CBE_ACCOUNT } from '$env/static/public';
+  import { PUBLIC_CBE_ACCOUNT, PUBLIC_TELEBIRR_ACCOUNT } from '$env/static/public';
 
   let depositReference = '';
   let isProcessing = false;
+  let selectedPaymentMethod = 'cbe'; // 'cbe' or 'telebirr'
   
   // Modal states
   let showSuccessModal = false;
@@ -47,7 +48,7 @@
         // Handle all error cases
         const errorMessages = {
           'duplicate': 'This reference number has already been used for a deposit. Please use a different reference number.',
-          'invalid-reference': 'The reference number you entered is invalid. Please check the reference from your bank confirmation SMS and try again.',
+          'invalid-reference': 'The reference number you entered is invalid. Please check the reference from your confirmation SMS and try again.',
           'invalid-receiver': 'Payment was not made to the correct account. Please verify the account details and try again.',
           'invalid-request': 'Invalid request. Please refresh the page and try again.',
           'server-error': 'A server error occurred. Please try again in a few moments.'
@@ -57,7 +58,7 @@
         modalMessage = data.message || errorMessages[data.status] || 'An unexpected error occurred. Please try again.';
         showErrorModal = true;
       }
-  } else if (msg.type === 'balance-resp') {
+    } else if (msg.type === 'balance-resp') {
       let data = msg.data;
       if (data && typeof data.balance !== 'undefined') {
         balance.set(data.balance);
@@ -81,7 +82,7 @@
   async function handleDeposit() {
     if (!depositReference.trim()) {
       modalTitle = 'Missing Reference';
-      modalMessage = 'Please enter the payment reference number from your bank confirmation SMS.';
+      modalMessage = 'Please enter the payment reference number from your confirmation SMS.';
       showErrorModal = true;
       return;
     }
@@ -92,7 +93,8 @@
       type: 'deposite',
       data: {
         userId: $player.user_id,
-        referenceNumber: depositReference.trim()
+        referenceNumber: depositReference.trim(),
+        paymentMethod: selectedPaymentMethod // cbe or telebirr
       }
     };
 
@@ -112,6 +114,11 @@
 
   function goBack() {
     goto('/');
+  }
+
+  function selectPaymentMethod(method) {
+    selectedPaymentMethod = method;
+    depositReference = ''; // Clear reference when switching methods
   }
 </script>
 
@@ -160,31 +167,110 @@
         </div>
       </div>
 
+      <!-- Payment Method Selection -->
+      <div class="mb-6">
+        <h3 class="font-semibold text-gray-800 mb-3 flex items-center">
+          <span class="text-blue-600 mr-2">💳</span>
+          Choose Payment Method
+        </h3>
+        
+        <div class="grid grid-cols-2 gap-3">
+          <!-- CBE Option -->
+          <button
+            on:click={() => selectPaymentMethod('cbe')}
+            class="relative p-4 rounded-xl border-2 transition-all {selectedPaymentMethod === 'cbe' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white hover:border-gray-300'}"
+          >
+            <div class="flex flex-col items-center">
+              <img 
+                src="https://www.cbeib.com.et/ARCIB-4/modelbank/unprotected/assets/cbe.png"
+                alt="CBE" 
+                class="w-10 h-10 rounded-full border border-gray-200 mb-2"
+              />
+              <span class="text-sm font-medium text-gray-700">CBE Bank</span>
+            </div>
+            {#if selectedPaymentMethod === 'cbe'}
+              <div class="absolute top-2 right-2">
+                <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+            {/if}
+          </button>
+
+          <!-- Telebirr Option -->
+          <button
+            on:click={() => selectPaymentMethod('telebirr')}
+            class="relative p-4 rounded-xl border-2 transition-all {selectedPaymentMethod === 'telebirr' ? 'border-orange-500 bg-orange-50' : 'border-gray-200 bg-white hover:border-gray-300'}"
+          >
+            <div class="flex flex-col items-center">
+              <img 
+                src="https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/a2/b7/5b/a2b75b03-c780-148a-2e78-865885e07fc6/AppIcon-0-0-1x_U007emarketing-0-7-0-0-85-220.png/512x512bb.jpg"
+                alt="Telebirr" 
+                class="w-10 h-10 rounded-full border border-gray-200 mb-2"
+              />
+              <span class="text-sm font-medium text-gray-700">Telebirr</span>
+            </div>
+            {#if selectedPaymentMethod === 'telebirr'}
+              <div class="absolute top-2 right-2">
+                <svg class="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+            {/if}
+          </button>
+        </div>
+      </div>
+
       <!-- Payment Instructions -->
       <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4 mb-6 border border-blue-200">
         <h3 class="font-semibold text-gray-800 mb-3 flex items-center">
           <span class="text-blue-600 mr-2">📱</span>
-          ወደዚህ ቁጥር ይክፈሉ  
+          {#if selectedPaymentMethod === 'cbe'}
+            ወደዚህ ቁጥር ይክፈሉ
+          {:else}
+            Send Money to Telebirr
+          {/if}
         </h3>
         
         <div class="space-y-3">
-          <div class="flex items-center justify-between bg-white/60 rounded-lg p-3">
-            <div class="flex items-center">
-              <img 
-                src="https://www.cbeib.com.et/ARCIB-4/modelbank/unprotected/assets/cbe.png"
-                alt="CBE" 
-                class="w-12 h-12 rounded-full border-1 border-white shadow-lg"
-              />
-              <div class="ml-3">
-                <p class="font-medium text-gray-800">CBE</p>
-                <p class="text-sm text-gray-600">{PUBLIC_CBE_ACCOUNT}</p>
+          {#if selectedPaymentMethod === 'cbe'}
+            <div class="flex items-center justify-between bg-white/60 rounded-lg p-3">
+              <div class="flex items-center">
+                <img 
+                  src="https://www.cbeib.com.et/ARCIB-4/modelbank/unprotected/assets/cbe.png"
+                  alt="CBE" 
+                  class="w-12 h-12 rounded-full border-1 border-white shadow-lg"
+                />
+                <div class="ml-3">
+                  <p class="font-medium text-gray-800">CBE Bank</p>
+                  <p class="text-sm text-gray-600">{PUBLIC_CBE_ACCOUNT}</p>
+                </div>
               </div>
             </div>
-          </div>
+          {:else}
+            <div class="flex items-center justify-between bg-white/60 rounded-lg p-3">
+              <div class="flex items-center">
+                <img 
+                  src="https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/a2/b7/5b/a2b75b03-c780-148a-2e78-865885e07fc6/AppIcon-0-0-1x_U007emarketing-0-7-0-0-85-220.png/512x512bb.jpg"
+                  alt="Telebirr" 
+                  class="w-12 h-12 rounded-full border-1 border-white shadow-lg"
+                />
+                <div class="ml-3">
+                  <p class="font-medium text-gray-800">Telebirr</p>
+                  <p class="text-sm text-gray-600">{PUBLIC_TELEBIRR_ACCOUNT}</p>
+                </div>
+              </div>
+            </div>
+          {/if}
           
           <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
             <p class="text-sm text-amber-800">
-              <span class="font-semibold">📋 ማስታወሻ:</span> ገቢ ካደረጉ በኅላ የደረሶትን የባንክ ማረጋገጫ አጭር መልዕክት ወይም የያዘውን URL ይቅዱና እዚህ ይለጥፉ
+              <span class="font-semibold">📋 ማስታወሻ:</span> 
+              {#if selectedPaymentMethod === 'cbe'}
+                ገቢ ካደረጉ በኅላ የደረሶትን የባንክ ማረጋገጫ አጭር መልዕክት ወይም የያዘውን URL ይቅዱና እዚህ ይለጥፉ
+              {:else}
+                After sending money via Telebirr, copy and paste your transaction confirmation SMS message here
+              {/if}
             </p>
           </div>
         </div>
@@ -193,18 +279,22 @@
       <!-- Message Input -->
       <div class="mb-6">
         <label for="deposit-message" class="block text-sm font-medium text-gray-700 mb-2">
-          Bank Confirmation SMS Message - Copy and paste
+          {#if selectedPaymentMethod === 'cbe'}
+            Bank Confirmation SMS Message - Copy and paste
+          {:else}
+            Telebirr Confirmation SMS Message - Copy and paste
+          {/if}
         </label>
         <textarea
           id="deposit-message"
           bind:value={depositReference}
-          placeholder="Paste your complete bank confirmation SMS message here..."
+          placeholder="{selectedPaymentMethod === 'cbe' ? 'Paste your complete bank confirmation SMS message here...' : 'Paste your complete Telebirr confirmation SMS message here...'}"
           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm min-h-[120px] resize-none"
           disabled={isProcessing}
           rows="6"
         ></textarea>
         <p class="text-xs text-gray-500 mt-2">
-          📝 you can remove your balance from the SMS message or only just send the transaction URL
+          📝 You can remove your balance from the SMS message or only just send the transaction URL
         </p>
       </div>
 
