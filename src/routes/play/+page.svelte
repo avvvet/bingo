@@ -565,8 +565,8 @@
 
       <!-- Winning Bingo Card -->
       <div class="bg-white bg-opacity-95 backdrop-blur-sm rounded-xl p-4 mb-6 shadow-inner border border-white/30">
-        <div class="text-center text-gray-700 font-semibold mb-3 text-sm">Winning Card</div>
-        
+        <div class="text-center text-gray-700 font-semibold mb-3 text-sm">Winning Card # {winnerData.card_sn}</div>
+        <div class="text-center text-gray-700 font-semibold mb-3 text-sm">Game {winnerData.game_id}</div>
         <!-- BINGO Header -->
         <div class="grid grid-cols-5 gap-1 mb-2">
           {#each headerLetters as l, i}
